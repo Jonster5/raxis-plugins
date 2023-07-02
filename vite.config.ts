@@ -7,7 +7,7 @@ export default defineConfig({
 		lib: {
 			entry: './src/main.ts',
 			name: 'raxis',
-			fileName: (f, n) => `raxis-plugins-${n}.${f}.js`,
+			fileName: (f, n) => `raxis-plugins-${n}.${f === 'cjs' ? f : 'js'}`,
 			formats: ['es', 'cjs'],
 		},
 		rollupOptions: {

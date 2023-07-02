@@ -1,24 +1,24 @@
 {
 	"name": "raxis-plugins",
-	"version": "1.0.2",
+	"version": "1.0.4",
 	"type": "module",
 	"files": [
 		"dist"
 	],
-	"main": "./dist/raxis-plugins-main.cjs.js",
-	"module": "./dist/raxis-plugins-main.es.js",
+	"main": "./dist/raxis-plugins-main.cjs",
+	"module": "./dist/raxis-plugins-main.js",
 	"types": "./dist/raxis-plugins-main.d.ts",
 	"exports": {
 		".": {
-			"require": "./dist/raxis-plugins-main.cjs.js",
-			"module": "./dist/raxis-plugins-main.es.js",
+			"require": "./dist/raxis-plugins-main.cjs",
+			"module": "./dist/raxis-plugins-main.js",
 			"types": "./dist/raxis-plugins-main.d.ts"
 		}
 	},
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc && vite build",
-		"publish": "npm run build && npm publish"
+		"publish": "npm run build & npm publish"
 	},
 	"devDependencies": {
 		"typescript": "^5.1.3",
