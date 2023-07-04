@@ -18,10 +18,8 @@ export class KeysToTrack extends Resource {
 }
 
 export function setupKeyTrackers(ecs: ECS) {
-	const ktt = ecs.getResource(KeysToTrack)!;
-	if (!ktt) return;
-
-	const { keys } = ktt;
+	if (!ecs.hasResource(KeysToTrack)) return;
+	const { keys } = ecs.getResource(KeysToTrack)!;
 	const { keymap } = ecs.getResource(Inputs)!;
 
 	keys.forEach((key) => {
