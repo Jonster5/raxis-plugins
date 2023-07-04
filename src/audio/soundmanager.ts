@@ -1,4 +1,4 @@
-import { Component, Entity } from 'raxis-ecs';
+import { Component, Entity } from 'raxis';
 import { Sound } from './sound';
 import { SoundEffect } from './soundeffect';
 

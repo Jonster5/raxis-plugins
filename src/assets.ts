@@ -1,4 +1,4 @@
-import { Resource, ECS } from 'raxis-ecs';
+import { Resource, ECS } from 'raxis';
 
 export class Assets extends Resource {
 	[key: string]: any;

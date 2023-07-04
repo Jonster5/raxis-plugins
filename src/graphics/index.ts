@@ -1,4 +1,4 @@
-import { ECS } from 'raxis-ecs';
+import { ECS } from 'raxis';
 import { Time } from '../time';
 import { Transform } from '../transform';
 import { Canvas, setupCanvas, updateCanvasDimensions, updateCanvasZoom, renderCanvas } from './canvas';

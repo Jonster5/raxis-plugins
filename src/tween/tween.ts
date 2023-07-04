@@ -1,4 +1,4 @@
-import { Component, ECS, Entity } from 'raxis-ecs';
+import { Component, ECS, Entity } from 'raxis';
 import { Time } from '../time';
 import type { TweenBase } from './tweenbase';
 

@@ -1,4 +1,4 @@
-import { ECS } from 'raxis-ecs';
+import { ECS } from 'raxis';
 import { SoundManager } from './soundmanager';
 
 export * from './soundmanager';

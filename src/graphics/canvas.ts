@@ -1,5 +1,5 @@
-import { Component, Resource, ECS } from 'raxis-ecs';
-import { Vec2 } from 'raxis-ecs/math';
+import { Component, Resource, ECS } from 'raxis';
+import { Vec2 } from 'raxis/math';
 import { Time } from '../time';
 import { Transform } from '../transform';
 import { Sprite, Root } from './sprite';

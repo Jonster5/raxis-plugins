@@ -1,6 +1,6 @@
 import { TweenBase } from './tweenbase';
 import { BasicTween } from './basictween';
-import { linear } from 'raxis-ecs/math';
+import { linear } from 'raxis/math';
 
 export class Tween<T extends { [key: string]: number }> extends TweenBase {
 	obj: T;

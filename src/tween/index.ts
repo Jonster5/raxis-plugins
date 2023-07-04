@@ -1,4 +1,4 @@
-import { ECS } from 'raxis-ecs';
+import { ECS } from 'raxis';
 import { TweenManager, updateTweens } from './tween';
 
 export * from './tween';

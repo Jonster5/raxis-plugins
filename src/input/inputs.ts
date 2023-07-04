@@ -1,4 +1,4 @@
-import { Resource, ECS } from 'raxis-ecs';
+import { Resource, ECS } from 'raxis';
 import { KeyTracker } from './keytracker';
 import { PointerTracker } from './pointertracker';
 

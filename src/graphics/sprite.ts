@@ -1,4 +1,4 @@
-import { Component } from 'raxis-ecs';
+import { Component } from 'raxis';
 
 export class Sprite extends Component {
 	constructor(

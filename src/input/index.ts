@@ -1,4 +1,4 @@
-import { ECS } from 'raxis-ecs';
+import { ECS } from 'raxis';
 import { Inputs, setupKeyTrackers, updatePointerPos, destroyKeyTrackers } from './inputs';
 
 export * from './keytracker';

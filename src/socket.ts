@@ -1,4 +1,4 @@
-import { Component, Entity, ECS } from 'raxis-ecs';
+import { Component, Entity, ECS } from 'raxis';
 
 export type SocketData<T = any> = { type: string; body: T };
 

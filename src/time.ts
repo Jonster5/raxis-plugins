@@ -1,5 +1,5 @@
-import { ECS } from 'raxis-ecs';
-import { Resource } from 'raxis-ecs';
+import { ECS } from 'raxis';
+import { Resource } from 'raxis';
 
 export class Time extends Resource {
 	constructor(

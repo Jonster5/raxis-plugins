@@ -1,4 +1,4 @@
-import { ECSPlugin } from 'raxis-ecs';
+import { ECSPlugin } from 'raxis';
 import { AssetsPlugin } from './assets';
 import { AudioPlugin } from './audio';
 import { GraphicsPlugin } from './graphics';

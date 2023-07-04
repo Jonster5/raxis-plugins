@@ -26,6 +26,6 @@
 		"vite-plugin-dts": "^3.0.2"
 	},
 	"dependencies": {
-		"raxis-ecs": "^1.1.0"
+		"raxis": "^1.2.3"
 	}
 }
