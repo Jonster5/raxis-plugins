@@ -1,6 +1,6 @@
 {
 	"name": "raxis-plugins",
-	"version": "1.0.7",
+	"version": "1.0.8",
 	"type": "module",
 	"files": [
 		"dist"
@@ -26,6 +26,6 @@
 		"vite-plugin-dts": "^3.0.2"
 	},
 	"dependencies": {
-		"raxis": "^1.2.3"
+		"raxis": "*"
 	}
 }

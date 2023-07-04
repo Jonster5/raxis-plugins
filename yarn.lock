@@ -519,10 +519,10 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.0.tgz#f67fa67c94da8f4d0cfff981aee4118064199b8f"
   integrity sha512-rRV+zQD8tVFys26lAGR9WUuS4iUAngJScM+ZRSKtvl5tKeZ2t5bvdNFdNHBW9FWR4guGHlgmsZ1G7BSm2wTbuA==
 
-raxis@^1.2.3:
-  version "1.2.3"
-  resolved "https://registry.yarnpkg.com/raxis/-/raxis-1.2.3.tgz#b5bad7174f28fbc466c3328c9f32067e9ad2fbee"
-  integrity sha512-urx4tYLIg8jIpsqEhin/ZEDLydq689cFOgeJyMiRjtlz5hoXFYeOjrGqJWLaTKe2j8XKtB1U9fg44Te0HOiu5w==
+raxis@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/raxis/-/raxis-1.3.0.tgz#fbcbd35f0cad59c3b9eb166cbc73c46f078a2d43"
+  integrity sha512-DENKD96l6OaAlqfhXFwrBuuRcOsD5yrSjJLprzaOjZ63nwvtY+G8ZWvumjt0vZZSFgRyLlaAPDNiA5wM4L/xTg==
 
 resolve@~1.19.0:
   version "1.19.0"
