@@ -3,7 +3,7 @@ import { Component } from 'raxis';
 export class Sprite extends Component {
 	constructor(
 		public type: 'rectangle' | 'ellipse' | 'image' | 'none',
-		public material: string | CanvasGradient | CanvasPattern | HTMLImageElement[] | undefined = undefined,
+		public material: string | CanvasGradient | CanvasPattern | CanvasImageSource[] | undefined = undefined,
 		public visible: boolean = true,
 		public filter: string | undefined = undefined,
 		public alpha: number = 1,
@@ -29,7 +29,7 @@ export function startImageAnimation(sprite: Sprite, delay: number) {
 
 	sprite.shifter = setInterval(() => {
 		sprite.ci!++;
-		if (sprite.ci >= (sprite.material as HTMLImageElement[]).length) sprite.ci = 0;
+		if (sprite.ci >= (sprite.material as CanvasImageSource[]).length) sprite.ci = 0;
 	}, delay) as unknown as number;
 }
 

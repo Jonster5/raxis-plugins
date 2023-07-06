@@ -176,7 +176,7 @@ export function renderCanvas(ecs: ECS) {
 				ctx.stroke();
 			}
 		} else if (type === 'image' && material instanceof Array) {
-			ctx.drawImage((material as CanvasImageSource[])[ci], -size.x / 2, -size.y / 2, size.x, size.y);
+			ctx.drawImage((material)[ci], -size.x / 2, -size.y / 2, size.x, size.y);
 		}
 
 		ctx.restore();
