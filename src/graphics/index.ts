@@ -2,7 +2,7 @@ import { ECS } from 'raxis';
 import { Time } from '../time';
 import { Transform } from '../transform';
 import { Canvas, setupCanvas, updateCanvasDimensions, updateCanvasZoom, renderCanvas } from './canvas';
-import { Sprite, Root } from './sprite';
+import { Sprite } from './sprite';
 
 export function checkGraphicsCompatibility(ecs: ECS) {
 	const hasTime = !!ecs.getResource(Time);
@@ -19,7 +19,7 @@ export function checkGraphicsCompatibility(ecs: ECS) {
 }
 
 export function GraphicsPlugin(ecs: ECS) {
-	ecs.addComponentTypes(Canvas, Sprite, Root)
+	ecs.addComponentTypes(Canvas, Sprite)
 		.addStartupSystems(checkGraphicsCompatibility, setupCanvas)
 		.addMainSystems(updateCanvasDimensions, updateCanvasZoom, renderCanvas);
 }

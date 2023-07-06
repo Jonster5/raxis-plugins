@@ -22,8 +22,6 @@ export class Sprite extends Component {
 	}
 }
 
-export class Root extends Component {}
-
 export function startImageAnimation(sprite: Sprite, delay: number) {
 	if (sprite.type !== 'image') return;
 

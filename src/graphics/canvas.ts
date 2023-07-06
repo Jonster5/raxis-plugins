@@ -1,8 +1,8 @@
-import { Component, Resource, ECS } from 'raxis';
+import { Component, Resource, ECS, With } from 'raxis';
 import { Vec2 } from 'raxis/math';
 import { Time } from '../time';
 import { Transform } from '../transform';
-import { Sprite, Root } from './sprite';
+import { Sprite } from './sprite';
 
 export class Canvas extends Component {
 	constructor(
@@ -13,7 +13,6 @@ export class Canvas extends Component {
 		public size: Vec2,
 		public zoom: number,
 		public def: DOMMatrix,
-		public root: number | null,
 		public last: {
 			zoom: number;
 			tcw: number;
@@ -73,9 +72,11 @@ export function setupCanvas(ecs: ECS) {
 
 	target.appendChild(element);
 
-	const root = ecs.spawn(new Sprite('none'), new Transform(), new Root());
-
-	ecs.spawn(new Canvas(target, element, ctx, aspect, size, zoom, def, root.id(), { zoom, tcw, tch }));
+	ecs.spawn(
+		new Canvas(target, element, ctx, aspect, size, zoom, def, { zoom, tcw, tch }),
+		new Sprite('none'),
+		new Transform()
+	);
 }
 
 export function updateCanvasZoom(ecs: ECS) {
@@ -126,18 +127,27 @@ export function updateCanvasDimensions(ecs: ECS) {
 }
 
 export function renderCanvas(ecs: ECS) {
-	const [canvas] = ecs.query([Canvas]).single()!;
+	const canvasQuery = ecs.query([Canvas]);
+	const [c] = canvasQuery.single()!;
 	const time = ecs.getResource(Time)!;
 
-	const { ctx } = canvas;
+	const { ctx } = c;
 
-	canvas.ctx.setTransform(canvas.def);
+	c.ctx.setTransform(c.def);
 
-	canvas.ctx.clearRect(-canvas.size.x, -canvas.size.y, canvas.size.x * 2, canvas.size.y * 2);
+	c.ctx.clearRect(-c.size.x, -c.size.y, c.size.x * 2, c.size.y * 2);
 
-	draw(time, canvas.root!);
+	c.ctx.save();
 
-	function draw(time: Time, sid: number) {
+	draw(time, canvasQuery.entities()[0], false);
+
+	ecs.roots(With(Sprite), With(Transform)).forEach((root) => {
+		draw(time, root, true);
+	});
+
+	c.ctx.restore();
+
+	function draw(time: Time, sid: number, save: boolean) {
 		const e = ecs.entity(sid);
 		const sprite = e.get(Sprite);
 		const transform = e.get(Transform);
@@ -149,7 +159,7 @@ export function renderCanvas(ecs: ECS) {
 		const { pos, angle, size } = transform;
 		const { type, material, filter, alpha, borderColor, borderWidth, ci } = sprite;
 
-		ctx.save();
+		if (save) ctx.save();
 
 		ctx.translate(pos.x, pos.y);
 		ctx.rotate(angle);
@@ -176,15 +186,15 @@ export function renderCanvas(ecs: ECS) {
 				ctx.stroke();
 			}
 		} else if (type === 'image' && material instanceof Array) {
-			ctx.drawImage((material)[ci], -size.x / 2, -size.y / 2, size.x, size.y);
+			ctx.drawImage(material[ci], -size.x / 2, -size.y / 2, size.x, size.y);
 		}
 
 		ctx.restore();
 
 		if (e.children().length > 0) {
-			for (let child of e.children()) draw(time, child);
+			for (let child of e.children()) draw(time, child, true);
 		}
 
-		ctx.restore();
+		if (save) ctx.restore();
 	}
 }
