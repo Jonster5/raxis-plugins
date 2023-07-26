@@ -27,33 +27,25 @@ export class Transform extends Component {
 		});
 	}
 
-	serialize(): string {
-		const s = {
-			size: this.size.serialize(),
-			pos: this.pos.serialize(),
-			angle: this.angle,
-			vel: this.vel.serialize(),
-			avel: this.avel,
-			last: {
-				pos: this.last.pos.serialize(),
-				angle: this.last.angle,
-			},
-		};
-
-		return JSON.stringify(s);
+	serialize() {
+		return new Float64Array([
+			...this.size,
+			...this.pos,
+			this.angle,
+			...this.vel,
+			this.avel,
+			...this.last.pos,
+			this.last.angle,
+		]).buffer;
 	}
 
-	static deserialize(str: string) {
-		const d = JSON.parse(str);
+	static deserialize(buffer: ArrayBufferLike): Transform {
+		const v = new Float64Array(buffer);
 
-		return new Transform(
-			Vec2.fromString(d.size),
-			Vec2.fromString(d.pos),
-			parseFloat(d.angle),
-			Vec2.fromString(d.vel),
-			parseFloat(d.avel),
-			{ pos: Vec2.fromString(d.last.pos), angle: parseFloat(d.last.angle) }
-		);
+		return new Transform(new Vec2(v[0], v[1]), new Vec2(v[2], v[3]), v[4], new Vec2(v[5], v[6]), v[7], {
+			pos: new Vec2(v[8], v[9]),
+			angle: v[10],
+		});
 	}
 }
 

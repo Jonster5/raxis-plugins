@@ -1,16 +1,13 @@
 export class KeyTracker {
-	keys: string[];
+	keys: Set<string>;
 
 	isDown: boolean;
 	isUp: boolean;
 
-	private okd!: () => void;
-	private oku!: () => void;
-
 	private kdb: (e: KeyboardEvent) => void;
 	private kub: (e: KeyboardEvent) => void;
 
-	constructor(...keys: string[]) {
+	constructor(keys: Set<string>) {
 		this.keys = keys;
 
 		this.isDown = false;
@@ -29,26 +26,13 @@ export class KeyTracker {
 	}
 
 	private kd(e: KeyboardEvent) {
-		if (this.keys.indexOf(e.key) !== -1) {
-			this.isDown = true;
-			this.isUp = false;
-			if (this.okd) this.okd();
-		}
+		if (!this.keys.has(e.code)) return;
+		this.isDown = true;
+		this.isUp = false;
 	}
 	private ku(e: KeyboardEvent) {
-		if (this.keys.indexOf(e.key) !== -1) {
-			this.isDown = false;
-			this.isUp = true;
-
-			if (this.oku) this.oku();
-		}
-	}
-
-	onKeyDown(cb: () => void, thisArg?: any) {
-		this.okd = cb.bind(thisArg ?? cb);
-	}
-
-	onKeyUp(cb: () => void, thisArg?: any) {
-		this.oku = cb.bind(thisArg ?? cb);
+		if (!this.keys.has(e.code)) return;
+		this.isDown = false;
+		this.isUp = true;
 	}
 }

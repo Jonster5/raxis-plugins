@@ -1,5 +1,12 @@
 import { ECS } from 'raxis';
-import { Inputs, setupKeyTrackers, updatePointerPos, destroyKeyTrackers } from './inputs';
+import {
+	Inputs,
+	InputEvent,
+	setupKeyTrackers,
+	updatePointerPos,
+	destroyKeyTrackers,
+	setupInputEventHandlers,
+} from './inputs';
 
 export * from './keytracker';
 export * from './pointertracker';
@@ -7,7 +14,8 @@ export * from './inputs';
 
 export function InputPlugin(ecs: ECS) {
 	ecs.insertResource(new Inputs())
-		.addStartupSystem(setupKeyTrackers)
+		.addEventType(InputEvent)
+		.addStartupSystems(setupKeyTrackers, setupInputEventHandlers)
 		.addMainSystem(updatePointerPos)
 		.addShutdownSystem(destroyKeyTrackers);
 }

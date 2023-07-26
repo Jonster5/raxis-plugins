@@ -18,8 +18,13 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "stripInternal": true
+    "stripInternal": true,
+
+    "baseUrl": "./",
+    "paths": {
+      "raxis-plugins": ["lib/main"]
+    }
   },
-  "include": ["src"],
+  "include": ["src", "lib"],
   "exclude": ["node_modules"]
 }

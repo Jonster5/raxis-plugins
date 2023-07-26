@@ -13,7 +13,7 @@ export class Particle extends Component {
 export class ParticleGenerator extends Component {
 	constructor(
 		public amount: number,
-		public onGenerate: (p: Entity) => void = () => null,
+		public onGenerate: (t: Transform, s: Sprite, p: Entity) => void = () => null,
 		public duration: number = Infinity,
 		public delay: number = 0,
 		public repeat: boolean = false,
@@ -38,22 +38,21 @@ function generateParticles(ecs: ECS) {
 		g.tleft -= time.delta;
 		if (g.tleft > 0) return;
 
-		const b1 = t.pos.clone().sub(t.size.clone().div(2));
-		const b2 = t.pos.clone().add(t.size.clone().div(2));
+		const b1 = t.size.clone().div(-2);
+		const b2 = t.size.clone().div(2);
 
 		for (let i = 0; i < g.amount; i++) {
 			const rx = Math.random() * (b2.x - b1.x) + b1.x;
 			const ry = Math.random() * (b2.y - b1.y) + b1.y;
 
-			const e = ecs.spawn(
-				new Particle(g.duration),
-				new Transform(new Vec2(10, 10), new Vec2(rx, ry)),
-				new Sprite('ellipse', 'white')
-			);
+			const t = new Transform(new Vec2(10, 10), new Vec2(rx, ry));
+			const s = new Sprite('ellipse', 'white');
+
+			const e = ecs.spawn(new Particle(g.duration), t, s);
 
 			gen.addChild(e);
 
-			g.onGenerate(e);
+			g.onGenerate(t, s, e);
 		}
 
 		g.tleft = g.delay;

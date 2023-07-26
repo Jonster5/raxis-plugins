@@ -4,16 +4,18 @@ export class Assets extends Resource {
 	[key: string]: any;
 }
 
-export function loadImageFile(url: string): Promise<HTMLElement> {
-	return new Promise((res) => {
+export async function loadImageFile(url: string): Promise<HTMLImageElement> {
+	const img: Promise<HTMLImageElement> = new Promise((res) => {
 		const i = new Image(100, 100);
 		i.src = url;
 
 		i.onload = () => res(i);
 	});
+
+	return img;
 }
 
-export async function loadImages(...urls: string[]) {
+export async function loadImages(...urls: string[]): Promise<HTMLImageElement[]> {
 	return Promise.all(urls.map(loadImageFile));
 }
 
