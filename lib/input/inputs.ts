@@ -1,7 +1,7 @@
-import { Resource, ECS, ECSEvent } from 'raxis';
+import { Resource, ECS, ECSEvent, Vec2 } from 'raxis';
 import { KeyTracker } from './keytracker';
 import { PointerTracker } from './pointertracker';
-import { Vec2 } from 'raxis/math';
+
 import { Canvas, Transform } from 'raxis-plugins';
 
 export class Inputs extends Resource {

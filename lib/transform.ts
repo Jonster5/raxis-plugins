@@ -1,5 +1,5 @@
 import { Component, ECS, Entity } from 'raxis';
-import { Vec2 } from 'raxis/math';
+import { Vec2 } from 'raxis';
 import { Time } from './time';
 
 export class Transform extends Component {

@@ -16,7 +16,7 @@ import {
 	defaultPlugins,
 	setTimer,
 } from 'raxis-plugins';
-import { Vec2 } from 'raxis/math';
+import { Vec2 } from 'raxis';
 
 const app = document.getElementById('app')!;
 

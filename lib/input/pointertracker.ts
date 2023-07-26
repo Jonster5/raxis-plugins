@@ -1,4 +1,4 @@
-import { Vec2 } from 'raxis/math';
+import { Vec2 } from 'raxis';
 
 export class PointerTracker {
 	isDown: boolean;

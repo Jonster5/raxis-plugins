@@ -1,4 +1,4 @@
-import { linear } from 'raxis/math';
+import { linear } from 'raxis';
 
 export abstract class TweenBase {
 	duration: number;

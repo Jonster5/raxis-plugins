@@ -1,5 +1,5 @@
 import { Component, Entity, ECS, With } from 'raxis';
-import { Vec2 } from 'raxis/math';
+import { Vec2 } from 'raxis';
 import { Sprite } from './graphics';
 import { Time } from './time';
 import { Transform } from './transform';

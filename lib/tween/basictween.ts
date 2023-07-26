@@ -1,4 +1,4 @@
-import { linear } from 'raxis/math';
+import { linear } from 'raxis';
 import { TweenBase } from './tweenbase';
 
 export class BasicTween extends TweenBase {

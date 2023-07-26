@@ -1,5 +1,4 @@
-import { Component, Resource, ECS, With, Entity, ECSEvent } from 'raxis';
-import { Vec2 } from 'raxis/math';
+import { Component, Resource, ECS, With, Entity, ECSEvent, Vec2 } from 'raxis';
 import { Transform } from '../transform';
 import { Sprite, SpriteText, SpriteTextOptions } from './sprite';
 import { RenderMessageBody, RenderObject, renderer } from './renderer';
