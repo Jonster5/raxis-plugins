@@ -3,7 +3,7 @@ import dts from 'vite-plugin-dts';
 import path from 'path';
 
 export default defineConfig({
-	plugins: [dts({ insertTypesEntry: true, exclude: 'src/*' })],
+	plugins: [dts({ insertTypesEntry: true, exclude: 'src' })],
 	build: {
 		lib: {
 			entry: './lib/main.ts',

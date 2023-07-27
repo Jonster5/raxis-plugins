@@ -132,6 +132,20 @@ export function createSocket(ecs: ECS, label: string, url: string) {
 	return socket;
 }
 
+export function encodeString(str: string): ArrayBuffer {
+	const arr = new Array(str.length);
+
+	for (let i = 0; i < str.length; i++) {
+		arr[i] = str.codePointAt(i);
+	}
+
+	return new Uint16Array(arr).buffer;
+}
+
+export function decodeString(buffer: ArrayBuffer): string {
+	return String.fromCodePoint(...new Uint16Array(buffer));
+}
+
 export function getSocket(ecs: ECS, label: string) {
 	return ecs.getResource(SocketManager)!.sockets.get(label);
 }
