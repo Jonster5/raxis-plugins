@@ -1,4 +1,4 @@
-import { MaterialType, SpriteType } from '.';
+import { SpriteTextOptions, SpriteType } from '.';
 
 type Vec2 = { x: number; y: number };
 
@@ -26,7 +26,7 @@ export type RenderMessageBody = {
 export type RenderObject<T extends SpriteType = SpriteType> = {
 	sprite: {
 		type: T;
-		material: MaterialType<T>;
+		material: ImageBitmap[] | string | CanvasGradient | CanvasPattern | SpriteTextOptions;
 		filter: string | undefined;
 		visible: boolean;
 		alpha: number;

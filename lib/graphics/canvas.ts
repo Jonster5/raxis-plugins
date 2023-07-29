@@ -1,6 +1,6 @@
 import { Component, Resource, ECS, With, Entity, ECSEvent, Vec2 } from 'raxis';
 import { Transform } from '../transform';
-import { Sprite, SpriteText, SpriteTextOptions } from './sprite';
+import { MaterialType, Sprite, SpriteText, SpriteTextOptions } from './sprite';
 import { RenderMessageBody, RenderObject, renderer } from './renderer';
 
 export class Canvas extends Component {
@@ -162,7 +162,7 @@ export function updateCanvasDimensions(ecs: ECS) {
 	last.tch = target.clientHeight;
 }
 
-export function render(ecs: ECS) {
+export async function render(ecs: ECS) {
 	if (ecs.getEventReader(ReadyToRenderEvent).empty()) return;
 
 	const canvasQuery = ecs.query([Canvas, Transform, Sprite]);
@@ -175,7 +175,7 @@ export function render(ecs: ECS) {
 	const renderTree: RenderObject = {
 		sprite: {
 			type,
-			material,
+			material: await createMaterial(material),
 			filter,
 			visible,
 			alpha,
@@ -188,10 +188,12 @@ export function render(ecs: ECS) {
 			pos,
 			angle,
 		},
-		children: ecs
-			.roots(With(Transform), With(Sprite))
-			.map((e) => ecs.entity(e))
-			.map(createRenderObject),
+		children: await Promise.all(
+			ecs
+				.roots(With(Transform), With(Sprite))
+				.map((e) => ecs.entity(e))
+				.map(createRenderObject)
+		),
 	};
 
 	controller.postMessage({
@@ -203,14 +205,14 @@ export function render(ecs: ECS) {
 	});
 }
 
-function createRenderObject(entity: Entity): RenderObject {
+async function createRenderObject(entity: Entity): Promise<RenderObject> {
 	const { type, material, filter, visible, alpha, borderColor, borderWidth, ci } = entity.get(Sprite)!;
 	const { size, pos, angle } = entity.get(Transform)!;
 
 	const renderObj: RenderObject = {
 		sprite: {
 			type,
-			material,
+			material: await createMaterial(material),
 			filter,
 			visible,
 			alpha,
@@ -223,10 +225,12 @@ function createRenderObject(entity: Entity): RenderObject {
 			pos,
 			angle,
 		},
-		children: entity
-			.children(With(Transform), With(Sprite))
-			.map((c) => entity.ecs.entity(c))
-			.map(createRenderObject),
+		children: await Promise.all(
+			entity
+				.children(With(Transform), With(Sprite))
+				.map((c) => entity.ecs.entity(c))
+				.map(createRenderObject)
+		),
 	};
 
 	if (entity.has(SpriteText)) {
@@ -243,4 +247,14 @@ function createRenderObject(entity: Entity): RenderObject {
 	}
 
 	return renderObj;
+}
+
+async function createMaterial(
+	mat: MaterialType<any>
+): Promise<ImageBitmap[] | string | CanvasGradient | CanvasPattern | SpriteTextOptions> {
+	if (mat instanceof Array) {
+		return Promise.all(mat.map((m) => createImageBitmap(m)));
+	}
+
+	return mat!;
 }

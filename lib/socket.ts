@@ -72,8 +72,8 @@ export class Socket {
 
 		this.connection.onmessage = ({ data }: { data: ArrayBuffer }) => {
 			const length = new Uint8Array(data)[0];
-			const type = String.fromCodePoint(...new Uint16Array(data.slice(1, 1 + length * 2)));
-			const body = data.slice(1 + length * 2);
+			const type = new TextDecoder().decode(data.slice(1, 1 + length));
+			const body = data.slice(1 + length);
 
 			this.sme.send(new SocketMessageEvent(type, body, this));
 		};
@@ -94,12 +94,12 @@ export class Socket {
 	send(type: string, data: ArrayBufferLike) {
 		if (this.connection.readyState !== 1) return;
 
-		const length = new Uint8Array([type.length]).buffer;
-		const text = new Uint16Array(type.split('').map((s) => s.codePointAt(0)!)).buffer;
+		const length = new Uint8Array([type.length]);
+		const text = new TextEncoder().encode(type);
 		const message = new Uint8Array(length.byteLength + text.byteLength + data.byteLength);
 
-		message.set(new Uint8Array(length), 0);
-		message.set(new Uint8Array(text), length.byteLength);
+		message.set(length, 0);
+		message.set(text, length.byteLength);
 		message.set(new Uint8Array(data), length.byteLength + text.byteLength);
 
 		this.connection.send(message.buffer);
@@ -133,17 +133,11 @@ export function createSocket(ecs: ECS, label: string, url: string) {
 }
 
 export function encodeString(str: string): ArrayBuffer {
-	const arr = new Array(str.length);
-
-	for (let i = 0; i < str.length; i++) {
-		arr[i] = str.codePointAt(i);
-	}
-
-	return new Uint16Array(arr).buffer;
+	return new TextEncoder().encode(str).buffer;
 }
 
 export function decodeString(buffer: ArrayBuffer): string {
-	return String.fromCodePoint(...new Uint16Array(buffer));
+	return new TextDecoder().decode(buffer);
 }
 
 export function stitch(...buffers: ArrayBuffer[]): ArrayBuffer {

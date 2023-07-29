@@ -8,12 +8,18 @@ import {
 	KeysToTrack,
 	ParticleGenerator,
 	ReadyToRenderEvent,
+	SocketMessageEvent,
+	SocketOpenEvent,
 	Sprite,
 	SpriteText,
 	Time,
 	Transform,
 	checkTimer,
+	createSocket,
+	decodeString,
 	defaultPlugins,
+	encodeString,
+	getSocket,
 	setTimer,
 } from 'raxis-plugins';
 import { Vec2 } from 'raxis';
@@ -90,10 +96,24 @@ function makeSquare(ecs: ECS) {
 			new SpriteText('(0, 0)')
 		)
 	);
+
+	createSocket(ecs, 'test', 'wss://echo.websocket.events/');
+}
+
+function testSocketM(ecs: ECS) {
+	if (ecs.getEventReader(SocketOpenEvent).empty()) return;
+
+	getSocket(ecs, 'test')?.send('12345', encodeString('123456'));
+}
+
+function testSocketR(ecs: ECS) {
+	(ecs.getEventReader(SocketMessageEvent).get() as SocketMessageEvent[]).forEach(({ type, body }) => {
+		console.log(type, decodeString(body));
+	});
 }
 
 function controlPGen(ecs: ECS) {
-	const [gen, t] = ecs.query([ParticleGenerator, Transform], With(Square)).single()!;
+	const [gen] = ecs.query([ParticleGenerator, Transform], With(Square)).single()!;
 
 	ecs.getEventReader(InputEvent)
 		.get()
@@ -103,7 +123,6 @@ function controlPGen(ecs: ECS) {
 			if (type === 'pointerdown') {
 				if (event.button === 0) {
 					gen.duration += 100;
-					console.log(Transform, t.serialize());
 				} else if (event.button === 2) {
 					gen.duration -= 100;
 				}
@@ -144,6 +163,6 @@ const ecs = new ECS()
 	.insertResource(new KeysToTrack([]))
 	.addComponentTypes(Square, FPScounter)
 	.addStartupSystems(makeSquare, makeFPSCounter)
-	.addMainSystems(moveSquare, wrapSquare, updateSquareText, updateFPSCounter, controlPGen);
+	.addMainSystems(moveSquare, wrapSquare, updateSquareText, updateFPSCounter, controlPGen, testSocketM, testSocketR);
 
 ecs.run();
