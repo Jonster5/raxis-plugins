@@ -15,6 +15,7 @@ export default defineConfig({
 			external: ['raxis'],
 		},
 	},
+
 	server: {
 		host: true,
 		port: 7800,

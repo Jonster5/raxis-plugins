@@ -93,6 +93,7 @@ export class Socket {
 
 	send(type: string, data: ArrayBufferLike) {
 		if (this.connection.readyState !== 1) return;
+		if (type.length > 255) throw new Error('length of type cannot be more than 255 characters');
 
 		const length = new Uint8Array([type.length]);
 		const text = new TextEncoder().encode(type);
@@ -143,7 +144,8 @@ export function decodeString(buffer: ArrayBuffer): string {
 export function stitch(...buffers: ArrayBuffer[]): ArrayBuffer {
 	const message = new Uint8Array(2 + buffers.length * 2 + buffers.reduce((a, b) => a + b.byteLength, 0));
 
-	const hlength = new Uint16Array([buffers.length]).buffer;
+	const hlength = new ArrayBuffer(2);
+	new DataView(hlength).setUint16(0, buffers.length, true);
 	const psizes = new Uint16Array(buffers.map((b) => b.byteLength)).buffer;
 
 	message.set(new Uint8Array(hlength), 0);
@@ -159,7 +161,7 @@ export function stitch(...buffers: ArrayBuffer[]): ArrayBuffer {
 }
 
 export function unstitch(buffer: ArrayBuffer): ArrayBuffer[] {
-	const hlength = new Uint16Array(buffer)[0];
+	const hlength = new DataView(buffer).getUint16(0, true);
 	const psizes = new Uint16Array(buffer.slice(2, 2 + hlength * 2));
 
 	const data = new Array(psizes.length);

@@ -9,7 +9,6 @@ import {
 	ParticleGenerator,
 	ReadyToRenderEvent,
 	SocketMessageEvent,
-	SocketOpenEvent,
 	Sprite,
 	SpriteText,
 	Time,
@@ -21,6 +20,8 @@ import {
 	encodeString,
 	getSocket,
 	setTimer,
+	stitch,
+	unstitch,
 } from 'raxis-plugins';
 import { Vec2 } from 'raxis';
 
@@ -97,18 +98,27 @@ function makeSquare(ecs: ECS) {
 		)
 	);
 
-	createSocket(ecs, 'test', 'wss://echo.websocket.events/');
+	createSocket(ecs, 'test', 'ws://localhost:7900/test');
 }
 
 function testSocketM(ecs: ECS) {
-	if (ecs.getEventReader(SocketOpenEvent).empty()) return;
+	if (!getSocket(ecs, 'test')?.isOpen()) return;
+	if (checkTimer(ecs)) return;
 
-	getSocket(ecs, 'test')?.send('12345', encodeString('123456'));
+	const [t] = ecs.query([Transform], With(Square)).single();
+
+	getSocket(ecs, 'test')?.send('mhm', stitch(encodeString('This is my uuid'), t.serialize()));
+
+	setTimer(ecs, 20);
 }
 
 function testSocketR(ecs: ECS) {
 	(ecs.getEventReader(SocketMessageEvent).get() as SocketMessageEvent[]).forEach(({ type, body }) => {
-		console.log(type, decodeString(body));
+		const [uuidr, tr] = unstitch(body);
+
+		ecs.query([], With(Square)).entity().replace(Transform.deserialize(tr));
+
+		console.log(type, decodeString(uuidr), Transform.deserialize(tr));
 	});
 }
 

@@ -39,7 +39,8 @@ export class Transform extends Component {
 		]).buffer;
 	}
 
-	static deserialize(buffer: ArrayBufferLike): Transform {
+	static deserialize(buffer: ArrayBuffer): Transform {
+		if (!(buffer instanceof ArrayBuffer)) throw new Error('An ArrayBuffer must be used');
 		const v = new Float64Array(buffer);
 
 		return new Transform(new Vec2(v[0], v[1]), new Vec2(v[2], v[3]), v[4], new Vec2(v[5], v[6]), v[7], {

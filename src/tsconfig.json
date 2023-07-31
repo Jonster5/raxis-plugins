@@ -3,7 +3,6 @@
     "target": "ES2020",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -14,17 +13,13 @@
     "noEmit": true,
 
     /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "stripInternal": true,
+    "strict": false,
+    
 
     "baseUrl": "./",
     "paths": {
-      "raxis-plugins": ["lib/main"]
+      "raxis-server": ["../lib/main"]
     }
   },
-  "include": ["lib"],
-  "exclude": ["node_modules"]
+  "include": ["./"]
 }
