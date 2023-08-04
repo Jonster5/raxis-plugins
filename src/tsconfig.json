@@ -18,7 +18,7 @@
 
     "baseUrl": "./",
     "paths": {
-      "raxis-server": ["../lib/main"]
+      "raxis-plugins": ["../lib/main"]
     }
   },
   "include": ["./"]

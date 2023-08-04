@@ -1,6 +1,5 @@
+import { Vec2 } from 'raxis';
 import { SpriteTextOptions, SpriteType } from '.';
-
-type Vec2 = { x: number; y: number };
 
 type MessageData = {
 	type: 'setup' | 'resize' | 'render';

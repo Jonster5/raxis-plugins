@@ -169,7 +169,7 @@ export async function render(ecs: ECS) {
 	const [
 		{ controller },
 		{ size, pos, angle },
-		{ type, material, filter, visible, alpha, borderColor, borderWidth, ci },
+		{ type, material, filter, visible, alpha, borderColor, borderWidth, index: ci },
 	] = canvasQuery.single()!;
 
 	const renderTree: RenderObject = {
@@ -192,6 +192,7 @@ export async function render(ecs: ECS) {
 			ecs
 				.roots(With(Transform), With(Sprite))
 				.map((e) => ecs.entity(e))
+				.sort((a, b) => a.get(Sprite)!.ZIndex - b.get(Sprite)!.ZIndex)
 				.map(createRenderObject)
 		),
 	};
@@ -206,7 +207,7 @@ export async function render(ecs: ECS) {
 }
 
 async function createRenderObject(entity: Entity): Promise<RenderObject> {
-	const { type, material, filter, visible, alpha, borderColor, borderWidth, ci } = entity.get(Sprite)!;
+	const { type, material, filter, visible, alpha, borderColor, borderWidth, index: ci } = entity.get(Sprite)!;
 	const { size, pos, angle } = entity.get(Transform)!;
 
 	const renderObj: RenderObject = {
@@ -229,6 +230,7 @@ async function createRenderObject(entity: Entity): Promise<RenderObject> {
 			entity
 				.children(With(Transform), With(Sprite))
 				.map((c) => entity.ecs.entity(c))
+				.sort((a, b) => a.get(Sprite)!.ZIndex - b.get(Sprite)!.ZIndex)
 				.map(createRenderObject)
 		),
 	};

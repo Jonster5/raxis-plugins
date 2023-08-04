@@ -25,4 +25,7 @@ export default defineConfig({
 			'raxis-plugins': path.resolve(__dirname, './lib/main'),
 		},
 	},
+	esbuild: {
+		keepNames: true,
+	},
 });

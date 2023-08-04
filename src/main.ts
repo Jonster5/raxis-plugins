@@ -1,6 +1,7 @@
 import './style.scss';
 import { Component, ECS, Resource, With } from 'raxis';
 import {
+	Assets,
 	Canvas,
 	CanvasSettings,
 	InputEvent,
@@ -19,6 +20,7 @@ import {
 	defaultPlugins,
 	encodeString,
 	getSocket,
+	loadImageFile,
 	setTimer,
 	stitch,
 	unstitch,
@@ -67,21 +69,35 @@ function updateFPSCounter(ecs: ECS) {
 	setTimer(ecs, 1000);
 }
 
+async function loadSquareAssets(ecs: ECS) {
+	const assets = ecs.getResource(Assets);
+
+	assets['square'] = await loadImageFile('/image0.png');
+}
+
 function makeSquare(ecs: ECS) {
+	const assets = ecs.getResource(Assets);
+
 	const square = ecs.spawn(
 		new Square(),
 		new Transform(new Vec2(10, 10)),
-		new Sprite('rectangle', 'royalblue'),
+		new Sprite('image', [assets['square']]),
 		new ParticleGenerator(
-			150,
+			20,
 			(t, s) => {
 				s.type = 'rectangle';
+				s.material = 'blue';
 
-				t.size.set(1, 1);
+				t.size.set(10, 10);
 				t.vel.random().mul(100);
 				t.vel.clampMag(0, 100);
+
+				if (Math.random() > 0.8) {
+					s.material = 'white';
+					s.ZIndex = 1;
+				}
 			},
-			500,
+			1000,
 			80,
 			true
 		)
@@ -97,29 +113,6 @@ function makeSquare(ecs: ECS) {
 			new SpriteText('(0, 0)')
 		)
 	);
-
-	createSocket(ecs, 'test', 'ws://localhost:7900/test');
-}
-
-function testSocketM(ecs: ECS) {
-	if (!getSocket(ecs, 'test')?.isOpen()) return;
-	if (checkTimer(ecs)) return;
-
-	const [t] = ecs.query([Transform], With(Square)).single();
-
-	getSocket(ecs, 'test')?.send('mhm', stitch(encodeString('This is my uuid'), t.serialize()));
-
-	setTimer(ecs, 20);
-}
-
-function testSocketR(ecs: ECS) {
-	(ecs.getEventReader(SocketMessageEvent).get() as SocketMessageEvent[]).forEach(({ type, body }) => {
-		const [uuidr, tr] = unstitch(body);
-
-		ecs.query([], With(Square)).entity().replace(Transform.deserialize(tr));
-
-		console.log(type, decodeString(uuidr), Transform.deserialize(tr));
-	});
 }
 
 function controlPGen(ecs: ECS) {
@@ -172,7 +165,7 @@ const ecs = new ECS()
 	.insertResource(new CanvasSettings({ target: app, width: 3000 }))
 	.insertResource(new KeysToTrack([]))
 	.addComponentTypes(Square, FPScounter)
-	.addStartupSystems(makeSquare, makeFPSCounter)
-	.addMainSystems(moveSquare, wrapSquare, updateSquareText, updateFPSCounter, controlPGen, testSocketM, testSocketR);
+	.addStartupSystems(loadSquareAssets, makeSquare, makeFPSCounter)
+	.addMainSystems(moveSquare, wrapSquare, updateSquareText, updateFPSCounter, controlPGen);
 
 ecs.run();
