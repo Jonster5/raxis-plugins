@@ -551,6 +551,11 @@ lru-cache@^6.0.0:
   dependencies:
     yallist "^4.0.0"
 
+memory-pool@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/memory-pool/-/memory-pool-1.2.0.tgz#7f0dd53eb13382821739c1c7f8675cd641f98407"
+  integrity sha512-vVESa95AKbJbQdRwIMCDWtXj+FBxXy6YdLdrbyEMuIIJtn/WnZPnLKKCVoDaXug9BL7h+JvaNM0b3z4phKBj6Q==
+
 minimatch@^9.0.0:
   version "9.0.2"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-9.0.2.tgz#397e387fff22f6795844d00badc903a3d5de7057"
@@ -607,10 +612,10 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.0.tgz#f67fa67c94da8f4d0cfff981aee4118064199b8f"
   integrity sha512-rRV+zQD8tVFys26lAGR9WUuS4iUAngJScM+ZRSKtvl5tKeZ2t5bvdNFdNHBW9FWR4guGHlgmsZ1G7BSm2wTbuA==
 
-raxis@^1.3.18:
-  version "1.3.18"
-  resolved "https://registry.yarnpkg.com/raxis/-/raxis-1.3.18.tgz#602b4538581b692a8b2f8d938425f02932d9c566"
-  integrity sha512-qCGLJFH1VfEqweVbUU8ufpafH5aOPTqQREc/FGMJiHgzBzBPYreCNkFkLJc1HCrdMm3qhaJaxi+wNHNgxKWbVA==
+raxis@^1.4.1:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/raxis/-/raxis-1.4.1.tgz#f38780aab942a3f271be3d937e38868ca5749beb"
+  integrity sha512-X7FzGktCaEwGsrMOvvt20fqMDX2a/9sJN8dyu4beLAAiF2qCCTI8ob9rT6utaNlec7NbPOThj2J3H6cLbZTOaQ==
 
 readdirp@~3.6.0:
   version "3.6.0"

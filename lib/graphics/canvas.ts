@@ -1,7 +1,8 @@
-import { Component, Resource, ECS, With, Entity, ECSEvent, Vec2 } from 'raxis';
+import { Component, Resource, ECS, With, Entity, ECSEvent, Vec2, MemPool } from 'raxis';
 import { Transform } from '../transform';
 import { MaterialType, Sprite, SpriteText, SpriteTextOptions } from './sprite';
 import { RenderMessageBody, RenderObject, renderer } from './renderer';
+import { checkTimer, setTimer } from 'raxis-plugins';
 
 export class Canvas extends Component {
 	constructor(
@@ -10,7 +11,8 @@ export class Canvas extends Component {
 		public controller: Worker,
 		public aspect: number,
 		public zoom: number,
-		public lastOpTime: number
+		public lastOpTime: number,
+		public rop: MemPool<RenderObject>
 	) {
 		super();
 	}
@@ -79,7 +81,41 @@ export function setupCanvas(ecs: ECS) {
 		[offscreen]
 	);
 
-	const canvas = new Canvas(target, element, controller, aspect, zoom, 0);
+	const canvas = new Canvas(
+		target,
+		element,
+		controller,
+		aspect,
+		zoom,
+		0,
+		new MemPool(
+			function () {
+				return {
+					sprite: {
+						type: 'none',
+						material: '',
+						filter: undefined,
+						visible: true,
+						alpha: 1,
+						borderColor: '',
+						borderWidth: 0,
+						ci: 0,
+					},
+					transform: {
+						size: { x: 0, y: 0 },
+						pos: { x: 0, y: 0 },
+						angle: 0,
+					},
+					text: undefined,
+					children: [],
+				} as RenderObject;
+			},
+			{
+				size: 50,
+				growBy: 50,
+			}
+		)
+	);
 
 	controller.onmessage = ({ data }) => {
 		const { body }: { body: number } = data;
@@ -163,82 +199,93 @@ export function updateCanvasDimensions(ecs: ECS) {
 }
 
 export async function render(ecs: ECS) {
-	if (ecs.getEventReader(ReadyToRenderEvent).empty()) return;
+	if (checkTimer(ecs)) return;
+	// if (ecs.getEventReader(ReadyToRenderEvent).empty()) return;
 
 	const canvasQuery = ecs.query([Canvas, Transform, Sprite]);
 	const [
-		{ controller },
+		{ controller, rop },
 		{ size, pos, angle },
 		{ type, material, filter, visible, alpha, borderColor, borderWidth, index: ci },
 	] = canvasQuery.single()!;
 
-	const renderTree: RenderObject = {
-		sprite: {
-			type,
-			material: await createMaterial(material),
-			filter,
-			visible,
-			alpha,
-			borderColor,
-			borderWidth,
-			ci,
-		},
-		transform: {
-			size,
-			pos,
-			angle,
-		},
-		children: await Promise.all(
-			ecs
-				.roots(With(Transform), With(Sprite))
-				.map((e) => ecs.entity(e))
-				.sort((a, b) => a.get(Sprite)!.ZIndex - b.get(Sprite)!.ZIndex)
-				.map(createRenderObject)
-		),
-	};
+	const root = rop.use();
+
+	root.sprite.type = type;
+	root.sprite.material = await createMaterial(material);
+	root.sprite.filter = filter;
+	root.sprite.visible = visible;
+	root.sprite.alpha = alpha;
+	root.sprite.borderColor = borderColor;
+	root.sprite.borderWidth = borderWidth;
+	root.sprite.ci = ci;
+
+	root.transform.size = size;
+	root.transform.pos = pos;
+	root.transform.angle = angle;
+
+	root.children = await Promise.all(
+		ecs
+			.roots(With(Transform), With(Sprite))
+			.map((e) => ecs.entity(e))
+			.sort((a, b) => a.get(Sprite)!.ZIndex - b.get(Sprite)!.ZIndex)
+			.map((c) => createRenderObject(c, rop))
+	);
 
 	controller.postMessage({
 		type: 'render',
 		body: {
 			size,
-			root: renderTree,
+			root,
 		} as RenderMessageBody,
 	});
+
+	freeRenderTree(root, rop);
+
+	setTimer(ecs, 1000 / 60);
 }
 
-async function createRenderObject(entity: Entity): Promise<RenderObject> {
+function freeRenderTree(obj: RenderObject, rop: MemPool<RenderObject>) {
+	if (obj.children.length > 0) {
+		for (let i = 0; i < obj.children.length; i++) {
+			freeRenderTree(obj.children[i], rop);
+		}
+	}
+
+	rop.free(obj);
+}
+
+async function createRenderObject(entity: Entity, rop: MemPool<RenderObject>): Promise<RenderObject> {
 	const { type, material, filter, visible, alpha, borderColor, borderWidth, index: ci } = entity.get(Sprite)!;
 	const { size, pos, angle } = entity.get(Transform)!;
 
-	const renderObj: RenderObject = {
-		sprite: {
-			type,
-			material: await createMaterial(material),
-			filter,
-			visible,
-			alpha,
-			borderColor,
-			borderWidth,
-			ci,
-		},
-		transform: {
-			size,
-			pos,
-			angle,
-		},
-		children: await Promise.all(
-			entity
-				.children(With(Transform), With(Sprite))
-				.map((c) => entity.ecs.entity(c))
-				.sort((a, b) => a.get(Sprite)!.ZIndex - b.get(Sprite)!.ZIndex)
-				.map(createRenderObject)
-		),
-	};
+	const obj = rop.use();
+
+	obj.sprite.type = type;
+	obj.sprite.material = await createMaterial(material);
+	obj.sprite.filter = filter;
+	obj.sprite.visible = visible;
+	obj.sprite.alpha = alpha;
+	obj.sprite.borderColor = borderColor;
+	obj.sprite.borderWidth = borderWidth;
+	obj.sprite.ci = ci;
+
+	obj.transform.size = size;
+	obj.transform.pos = pos;
+	obj.transform.angle = angle;
+
+	obj.children = await Promise.all(
+		entity
+			.children(With(Transform), With(Sprite))
+			.map((c) => entity.ecs.entity(c))
+			.sort((a, b) => a.get(Sprite)!.ZIndex - b.get(Sprite)!.ZIndex)
+			.map((c) => createRenderObject(c, rop))
+	);
 
 	if (entity.has(SpriteText)) {
 		const { font, color, strictWidth, textAlign, textBaseline } = material as SpriteTextOptions;
 
-		renderObj.text = {
+		obj.text = {
 			content: entity.get(SpriteText)?.value ?? '',
 			font: font ?? 'sans-serif',
 			color: color ?? 'black',
@@ -248,7 +295,7 @@ async function createRenderObject(entity: Entity): Promise<RenderObject> {
 		};
 	}
 
-	return renderObj;
+	return obj;
 }
 
 async function createMaterial(

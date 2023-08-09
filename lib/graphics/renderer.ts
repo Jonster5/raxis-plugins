@@ -1,5 +1,6 @@
-import { Vec2 } from 'raxis';
 import { SpriteTextOptions, SpriteType } from '.';
+
+type Vec2 = { x: number; y: number };
 
 type MessageData = {
 	type: 'setup' | 'resize' | 'render';
@@ -79,9 +80,12 @@ export function renderer() {
 		} else if (type === 'render') {
 			const { size, root } = body as RenderMessageBody;
 
+			console.time('yup');
+
 			ctx.clearRect(-size.x / 2, -size.y / 2, size.x, size.y);
 
 			draw(root);
+			console.timeEnd('yup');
 		}
 
 		queueMicrotask(() => {
