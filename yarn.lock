@@ -612,10 +612,10 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.0.tgz#f67fa67c94da8f4d0cfff981aee4118064199b8f"
   integrity sha512-rRV+zQD8tVFys26lAGR9WUuS4iUAngJScM+ZRSKtvl5tKeZ2t5bvdNFdNHBW9FWR4guGHlgmsZ1G7BSm2wTbuA==
 
-raxis@^1.4.1:
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/raxis/-/raxis-1.4.1.tgz#f38780aab942a3f271be3d937e38868ca5749beb"
-  integrity sha512-X7FzGktCaEwGsrMOvvt20fqMDX2a/9sJN8dyu4beLAAiF2qCCTI8ob9rT6utaNlec7NbPOThj2J3H6cLbZTOaQ==
+raxis@1.4.8:
+  version "1.4.8"
+  resolved "https://registry.yarnpkg.com/raxis/-/raxis-1.4.8.tgz#8341a3d5ed8e5888586c8fbc570612b51af97213"
+  integrity sha512-EygdDPVexX4EOxPF/YUXlAF3VShbWkUOm0JWuPSf6NdoXC4sQUEun/NapgqYLGb5GTUXrpCNvMMy9WyBuEF91A==
 
 readdirp@~3.6.0:
   version "3.6.0"

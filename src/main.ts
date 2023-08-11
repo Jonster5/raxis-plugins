@@ -9,23 +9,17 @@ import {
 	KeysToTrack,
 	ParticleGenerator,
 	ReadyToRenderEvent,
-	SocketMessageEvent,
 	Sprite,
 	SpriteText,
 	Time,
 	Transform,
 	checkTimer,
-	createSocket,
-	decodeString,
 	defaultPlugins,
-	encodeString,
-	getSocket,
 	loadImageFile,
 	setTimer,
-	stitch,
-	unstitch,
 } from 'raxis-plugins';
 import { Vec2 } from 'raxis';
+import { loadImageInto } from '../lib/graphics/handle';
 
 const app = document.getElementById('app')!;
 
@@ -71,8 +65,9 @@ function updateFPSCounter(ecs: ECS) {
 
 async function loadSquareAssets(ecs: ECS) {
 	const assets = ecs.getResource(Assets);
+	const [canvas] = ecs.query([Canvas]).single();
 
-	assets['square'] = await loadImageFile('/image0.png');
+	assets['square'] = await loadImageInto(canvas, await loadImageFile('/image0.png'));
 }
 
 function makeSquare(ecs: ECS) {
@@ -80,13 +75,13 @@ function makeSquare(ecs: ECS) {
 
 	const square = ecs.spawn(
 		new Square(),
-		new Transform(new Vec2(10, 10)),
+		new Transform(new Vec2(100, 100)),
 		new Sprite('image', [assets['square']]),
 		new ParticleGenerator(
-			20,
+			50,
 			(t, s) => {
-				s.type = 'rectangle';
-				s.material = 'blue';
+				s.type = 'image';
+				s.material = [assets['square']];
 
 				t.size.set(10, 10);
 				t.vel.random().mul(100);
@@ -118,10 +113,10 @@ function makeSquare(ecs: ECS) {
 function controlPGen(ecs: ECS) {
 	const [gen] = ecs.query([ParticleGenerator, Transform], With(Square)).single()!;
 
-	ecs.getEventReader(InputEvent)
+	ecs.getEventReader(InputEvent<'pointerdown'>)
 		.get()
 		.forEach((e) => {
-			const { type, event }: InputEvent<'pointerdown'> = e!;
+			const { type, event } = e!;
 
 			if (type === 'pointerdown') {
 				if (event.button === 0) {
@@ -162,7 +157,7 @@ function wrapSquare(ecs: ECS) {
 
 const ecs = new ECS()
 	.insertPlugins(...defaultPlugins)
-	.insertResource(new CanvasSettings({ target: app, width: 3000 }))
+	.insertResource(new CanvasSettings({ target: app, width: 3000, targetFPS: 60 }))
 	.insertResource(new KeysToTrack([]))
 	.addComponentTypes(Square, FPScounter)
 	.addStartupSystems(loadSquareAssets, makeSquare, makeFPSCounter)

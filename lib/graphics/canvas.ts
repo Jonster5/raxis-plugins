@@ -1,8 +1,9 @@
 import { Component, Resource, ECS, With, Entity, ECSEvent, Vec2, MemPool } from 'raxis';
 import { Transform } from '../transform';
 import { MaterialType, Sprite, SpriteText, SpriteTextOptions } from './sprite';
-import { RenderMessageBody, RenderObject, renderer } from './renderer';
+import { type RenderMessageBody, type RenderObject } from './renderer';
 import { checkTimer, setTimer } from 'raxis-plugins';
+import { Handle } from './handle';
 
 export class Canvas extends Component {
 	constructor(
@@ -12,6 +13,7 @@ export class Canvas extends Component {
 		public aspect: number,
 		public zoom: number,
 		public lastOpTime: number,
+		public targetFrameTime: number,
 		public rop: MemPool<RenderObject>
 	) {
 		super();
@@ -25,10 +27,11 @@ export class Canvas extends Component {
 export class CanvasSettings extends Resource {
 	constructor(
 		public settings: {
-			target: HTMLElement;
-			width: number;
+			target?: HTMLElement;
+			width?: number;
 			rendering?: 'crisp-edges' | 'pixelated';
 			extraStyling?: string;
+			targetFPS?: number;
 		}
 	) {
 		super();
@@ -38,11 +41,13 @@ export class CanvasSettings extends Resource {
 export class ReadyToRenderEvent extends ECSEvent {}
 
 export function setupCanvas(ecs: ECS) {
-	let { target, width, rendering, extraStyling } = ecs.getResource(CanvasSettings)!.settings;
-
-	target = target ?? document.body;
-	width = width ?? 1000;
-	rendering = rendering ?? 'crisp-edges';
+	const {
+		target = document.body,
+		width = 1000,
+		rendering = 'crisp-edges',
+		extraStyling = '',
+		targetFPS = 60,
+	} = ecs.hasResource(CanvasSettings) ? ecs.getResource(CanvasSettings)!.settings : {};
 
 	const element = document.createElement('canvas');
 	const offscreen = element.transferControlToOffscreen();
@@ -63,11 +68,7 @@ export function setupCanvas(ecs: ECS) {
 
 	target.appendChild(element);
 
-	const url = URL.createObjectURL(new Blob(['(', renderer.toString(), ')()'], { type: 'application/javascript' }));
-
-	const controller = new Worker(url);
-
-	URL.revokeObjectURL(url);
+	const controller = new Worker(new URL('./renderer.ts', import.meta.url), { name: 'renderer' });
 
 	controller.postMessage(
 		{
@@ -88,6 +89,7 @@ export function setupCanvas(ecs: ECS) {
 		aspect,
 		zoom,
 		0,
+		1000 / targetFPS,
 		new MemPool(
 			function () {
 				return {
@@ -200,11 +202,10 @@ export function updateCanvasDimensions(ecs: ECS) {
 
 export async function render(ecs: ECS) {
 	if (checkTimer(ecs)) return;
-	// if (ecs.getEventReader(ReadyToRenderEvent).empty()) return;
 
 	const canvasQuery = ecs.query([Canvas, Transform, Sprite]);
 	const [
-		{ controller, rop },
+		{ controller, rop, targetFrameTime },
 		{ size, pos, angle },
 		{ type, material, filter, visible, alpha, borderColor, borderWidth, index: ci },
 	] = canvasQuery.single()!;
@@ -242,7 +243,7 @@ export async function render(ecs: ECS) {
 
 	freeRenderTree(root, rop);
 
-	setTimer(ecs, 1000 / 60);
+	setTimer(ecs, targetFrameTime);
 }
 
 function freeRenderTree(obj: RenderObject, rop: MemPool<RenderObject>) {
@@ -300,9 +301,18 @@ async function createRenderObject(entity: Entity, rop: MemPool<RenderObject>): P
 
 async function createMaterial(
 	mat: MaterialType<any>
-): Promise<ImageBitmap[] | string | CanvasGradient | CanvasPattern | SpriteTextOptions> {
+): Promise<(ImageBitmap | string)[] | string | CanvasGradient | CanvasPattern | SpriteTextOptions> {
 	if (mat instanceof Array) {
-		return Promise.all(mat.map((m) => createImageBitmap(m)));
+		return Promise.all(
+			mat.map((m) => {
+				if (m instanceof Handle) {
+					return m.id;
+				} else {
+					console.warn('bad');
+					return createImageBitmap(m);
+				}
+			})
+		);
 	}
 
 	return mat!;

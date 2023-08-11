@@ -1,8 +1,30 @@
-import { Component, ECS, Entity } from 'raxis';
+import { Component, ECS, Entity, MemPool } from 'raxis';
 import { Vec2 } from 'raxis';
 import { Time } from './time';
 
 export class Transform extends Component {
+	private static sbuf: Float64Array = new Float64Array(new ArrayBuffer(88));
+	static readonly pool: MemPool<Transform> = new MemPool(() => new Transform(), {
+		size: 100,
+		growBy: 250,
+		sanitizer: (t) => {
+			t.size.x = 0;
+			t.size.y = 0;
+			t.pos.x = 0;
+			t.pos.y = 0;
+			t.angle = 0;
+			t.vel.x = 0;
+			t.vel.y = 0;
+			t.avel = 0;
+			t.last.pos.x = 0;
+			t.last.pos.y = 0;
+			t.last.angle = 0;
+			t.poolAllocated = true;
+		},
+	});
+
+	private poolAllocated: boolean;
+
 	constructor(
 		public size: Vec2 = new Vec2(0, 0),
 		public pos: Vec2 = new Vec2(0, 0),
@@ -18,6 +40,38 @@ export class Transform extends Component {
 		}
 	) {
 		super();
+		this.poolAllocated = false;
+	}
+
+	static create(
+		size: Vec2 = new Vec2(0, 0),
+		pos: Vec2 = new Vec2(0, 0),
+		angle: number = 0,
+		vel: Vec2 = new Vec2(0, 0),
+		avel: number = 0,
+		last: {
+			pos: Vec2;
+			angle: number;
+		} = {
+			pos: pos.clone(),
+			angle,
+		}
+	) {
+		const nt = this.pool.use();
+
+		nt.size = size;
+		nt.pos = pos;
+		nt.angle = angle;
+		nt.vel = vel;
+		nt.avel = avel;
+		nt.last = last;
+		nt.poolAllocated = true;
+
+		return nt;
+	}
+
+	onDestroy(): void {
+		if (this.poolAllocated) Transform.pool.free(this);
 	}
 
 	clone() {
@@ -25,6 +79,22 @@ export class Transform extends Component {
 			pos: this.last.pos.clone(),
 			angle: this.last.angle,
 		});
+	}
+
+	cloneInto(other: Transform): Transform {
+		other.size.x = this.size.x;
+		other.size.y = this.size.y;
+		other.pos.x = this.pos.x;
+		other.pos.y = this.pos.y;
+		other.angle = this.angle;
+		other.vel.x = this.vel.x;
+		other.vel.y = this.vel.y;
+		other.avel = this.avel;
+		other.last.pos.x = this.last.pos.x;
+		other.last.pos.y = this.last.pos.y;
+		other.last.angle = this.last.angle;
+
+		return other;
 	}
 
 	serialize() {
@@ -37,6 +107,42 @@ export class Transform extends Component {
 			...this.last.pos,
 			this.last.angle,
 		]).buffer;
+	}
+
+	serializeUnsafe(): ArrayBuffer {
+		Transform.sbuf[0] = this.size.x;
+		Transform.sbuf[1] = this.size.y;
+		Transform.sbuf[2] = this.pos.x;
+		Transform.sbuf[3] = this.pos.y;
+		Transform.sbuf[4] = this.angle;
+		Transform.sbuf[5] = this.vel.x;
+		Transform.sbuf[6] = this.vel.y;
+		Transform.sbuf[7] = this.avel;
+		Transform.sbuf[8] = this.last.pos.x;
+		Transform.sbuf[9] = this.last.pos.y;
+		Transform.sbuf[10] = this.last.angle;
+
+		return Transform.sbuf.buffer;
+	}
+
+	setFromBuffer(buffer: ArrayBuffer) {
+		if (buffer.byteLength !== 88) {
+			throw new Error('Buffer must be 88 bytes');
+		}
+
+		const view = new Float64Array(buffer);
+
+		this.size.x = view[0];
+		this.size.y = view[1];
+		this.pos.x = view[2];
+		this.pos.y = view[3];
+		this.angle = view[4];
+		this.vel.x = view[5];
+		this.vel.y = view[6];
+		this.avel = view[7];
+		this.last.pos.x = view[8];
+		this.last.pos.y = view[9];
+		this.last.angle = view[10];
 	}
 
 	static deserialize(buffer: ArrayBuffer): Transform {
@@ -53,15 +159,17 @@ export class Transform extends Component {
 function updateTransform(ecs: ECS) {
 	const time = ecs.getResource(Time)!;
 
-	const transforms = ecs.query([Transform]).results(([x]) => x);
+	const transforms = ecs.query([Transform]).results();
+	const mul = (time.delta * time.speed) / 1000;
 
-	transforms.forEach((t) => {
+	for (const [t] of transforms) {
 		t.last.pos.set(t.pos);
 		t.last.angle = t.angle;
 
-		t.pos.add(t.vel.clone().mul((time.delta * time.speed) / 1000));
-		t.angle += ((time.delta * time.speed) / 1000) * t.avel;
-	});
+		t.pos.x += t.vel.x * mul;
+		t.pos.y += t.vel.y * mul;
+		t.angle += t.avel * mul;
+	}
 }
 
 export function globalPos(e: Entity): Vec2 {

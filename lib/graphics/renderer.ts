@@ -3,8 +3,13 @@ import { SpriteTextOptions, SpriteType } from '.';
 type Vec2 = { x: number; y: number };
 
 type MessageData = {
-	type: 'setup' | 'resize' | 'render';
+	type: 'setup' | 'resize' | 'render' | 'load-image';
 	body: any;
+};
+
+type LoadImageBody = {
+	id: string;
+	image: ImageBitmap;
 };
 
 type SetupMessageBody = {
@@ -26,7 +31,7 @@ export type RenderMessageBody = {
 export type RenderObject<T extends SpriteType = SpriteType> = {
 	sprite: {
 		type: T;
-		material: ImageBitmap[] | string | CanvasGradient | CanvasPattern | SpriteTextOptions;
+		material: (ImageBitmap | string)[] | string | CanvasGradient | CanvasPattern | SpriteTextOptions;
 		filter: string | undefined;
 		visible: boolean;
 		alpha: number;
@@ -51,44 +56,48 @@ export type RenderObject<T extends SpriteType = SpriteType> = {
 	children: RenderObject[];
 };
 
-export function renderer() {
-	let element: OffscreenCanvas;
-	let ctx: OffscreenCanvasRenderingContext2D;
+let element: OffscreenCanvas;
+let ctx: OffscreenCanvasRenderingContext2D;
 
-	self.onmessage = ({ data }) => {
-		const { type, body } = data as MessageData;
+const assets: Map<string, ImageBitmap> = new Map();
 
-		const start = performance.now();
+self.onmessage = ({ data }) => {
+	const { type, body } = data as MessageData;
 
-		if (type === 'setup') {
-			const { canvas, dims, dpr } = body as SetupMessageBody;
+	const start = performance.now();
 
-			element = canvas;
-			ctx = canvas.getContext('2d')!;
+	if (type === 'load-image') {
+		const { id, image } = body as LoadImageBody;
 
-			element.width = dims[0];
-			element.height = dims[1];
+		assets.set(id, image);
+	} else if (type === 'setup') {
+		const { canvas, dims, dpr } = body as SetupMessageBody;
 
-			ctx.setTransform(dpr, 0, 0, -dpr, dims[0] / 2, dims[1] / 2);
-		} else if (type === 'resize') {
-			const { dims, dpr } = body as ResizeUpdateBody;
+		element = canvas;
+		ctx = canvas.getContext('2d')!;
 
-			element.width = dims[0];
-			element.height = dims[1];
+		element.width = dims[0];
+		element.height = dims[1];
 
-			ctx.setTransform(dpr, 0, 0, -dpr, dims[0] / 2, dims[1] / 2);
-		} else if (type === 'render') {
-			const { size, root } = body as RenderMessageBody;
+		ctx.setTransform(dpr, 0, 0, -dpr, dims[0] / 2, dims[1] / 2);
+	} else if (type === 'resize') {
+		const { dims, dpr } = body as ResizeUpdateBody;
 
-			ctx.clearRect(-size.x / 2, -size.y / 2, size.x, size.y);
+		element.width = dims[0];
+		element.height = dims[1];
 
-			draw(root);
-		}
+		ctx.setTransform(dpr, 0, 0, -dpr, dims[0] / 2, dims[1] / 2);
+	} else if (type === 'render') {
+		const { size, root } = body as RenderMessageBody;
 
-		queueMicrotask(() => {
-			self.postMessage({ type: 'ready', body: performance.now() - start });
-		});
-	};
+		ctx.clearRect(-size.x / 2, -size.y / 2, size.x, size.y);
+
+		draw(root);
+	}
+
+	queueMicrotask(() => {
+		self.postMessage({ type: 'ready', body: performance.now() - start });
+	});
 
 	function draw(obj: RenderObject) {
 		const { sprite, transform, text, children } = obj;
@@ -127,7 +136,12 @@ export function renderer() {
 				ctx.stroke();
 			}
 		} else if (type === 'image' && material instanceof Array) {
-			ctx.drawImage(material[ci], -size.x / 2, -size.y / 2, size.x, size.y);
+			const mat = material[ci];
+			if (mat instanceof ImageBitmap) {
+				ctx.drawImage(mat, -size.x / 2, -size.y / 2, size.x, size.y);
+			} else {
+				ctx.drawImage(assets.get(mat)!, -size.x / 2, -size.y / 2, size.x, size.y);
+			}
 		} else if (type === 'text' && material && material instanceof Object) {
 			const { content, font, color, strictWidth, textAlign, textBaseline } = text!;
 
@@ -150,4 +164,4 @@ export function renderer() {
 
 		ctx.restore();
 	}
-}
+};

@@ -1,4 +1,5 @@
 import { Component } from 'raxis';
+import { Handle } from './handle';
 
 export type SpriteType = 'none' | 'rectangle' | 'ellipse' | 'image' | 'text';
 export type MaterialType<T extends SpriteType> = T extends 'none'
@@ -6,7 +7,7 @@ export type MaterialType<T extends SpriteType> = T extends 'none'
 	: T extends 'rectangle' | 'ellipse'
 	? string | CanvasGradient | CanvasPattern
 	: T extends 'image'
-	? CanvasImageSource[]
+	? (CanvasImageSource | Handle)[]
 	: T extends 'text'
 	? SpriteTextOptions
 	: never;
