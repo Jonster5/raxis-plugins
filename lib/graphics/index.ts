@@ -1,7 +1,7 @@
 import { ECS } from 'raxis';
 import { Time } from '../time';
 import { Transform } from '../transform';
-import { Canvas, setupCanvas, updateCanvasDimensions, updateCanvasZoom, render, ReadyToRenderEvent } from './canvas';
+import { Canvas, setupCanvas, updateCanvasDimensions, updateCanvasZoom, render } from './canvas';
 import { Sprite, SpriteText } from './sprite';
 
 export function checkGraphicsCompatibility(ecs: ECS) {
@@ -20,10 +20,10 @@ export function checkGraphicsCompatibility(ecs: ECS) {
 
 export function GraphicsPlugin(ecs: ECS) {
 	ecs.addComponentTypes(Canvas, Sprite, SpriteText)
-		.addEventType(ReadyToRenderEvent)
 		.addStartupSystems(checkGraphicsCompatibility, setupCanvas)
 		.addMainSystems(updateCanvasDimensions, updateCanvasZoom, render);
 }
 
 export * from './canvas';
 export * from './sprite';
+export * from './handle';

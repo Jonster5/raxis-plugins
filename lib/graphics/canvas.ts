@@ -1,9 +1,10 @@
-import { Component, Resource, ECS, With, Entity, ECSEvent, Vec2, MemPool } from 'raxis';
+import { Component, Resource, ECS, With, Entity, Vec2, MemPool } from 'raxis';
 import { Transform } from '../transform';
 import { MaterialType, Sprite, SpriteText, SpriteTextOptions } from './sprite';
 import { type RenderMessageBody, type RenderObject } from './renderer';
 import { checkTimer, setTimer } from 'raxis-plugins';
 import { Handle } from './handle';
+import Renderer from './renderer?worker&inline';
 
 export class Canvas extends Component {
 	constructor(
@@ -14,6 +15,7 @@ export class Canvas extends Component {
 		public zoom: number,
 		public lastOpTime: number,
 		public targetFrameTime: number,
+		public readyToRender: boolean,
 		public rop: MemPool<RenderObject>
 	) {
 		super();
@@ -37,8 +39,6 @@ export class CanvasSettings extends Resource {
 		super();
 	}
 }
-
-export class ReadyToRenderEvent extends ECSEvent {}
 
 export function setupCanvas(ecs: ECS) {
 	const {
@@ -68,7 +68,7 @@ export function setupCanvas(ecs: ECS) {
 
 	target.appendChild(element);
 
-	const controller = new Worker(new URL('./renderer.ts', import.meta.url), { name: 'renderer' });
+	const controller = new Renderer();
 
 	controller.postMessage(
 		{
@@ -90,6 +90,7 @@ export function setupCanvas(ecs: ECS) {
 		zoom,
 		0,
 		1000 / targetFPS,
+		true,
 		new MemPool(
 			function () {
 				return {
@@ -123,8 +124,7 @@ export function setupCanvas(ecs: ECS) {
 		const { body }: { body: number } = data;
 
 		canvas.lastOpTime = body;
-
-		ecs.getEventWriter(ReadyToRenderEvent).send();
+		canvas.readyToRender = true;
 	};
 
 	ecs.spawn(canvas, new Sprite('none'), new Transform(size));
@@ -205,10 +205,11 @@ export async function render(ecs: ECS) {
 
 	const canvasQuery = ecs.query([Canvas, Transform, Sprite]);
 	const [
-		{ controller, rop, targetFrameTime },
+		canvas,
 		{ size, pos, angle },
 		{ type, material, filter, visible, alpha, borderColor, borderWidth, index: ci },
 	] = canvasQuery.single()!;
+	const { controller, rop, targetFrameTime } = canvas;
 
 	const root = rop.use();
 
@@ -240,6 +241,7 @@ export async function render(ecs: ECS) {
 			root,
 		} as RenderMessageBody,
 	});
+	canvas.readyToRender = false;
 
 	freeRenderTree(root, rop);
 

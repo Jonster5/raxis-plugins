@@ -2,17 +2,19 @@ import './style.scss';
 import { Component, ECS, Resource, With } from 'raxis';
 import {
 	Assets,
+	BasicTween,
 	Canvas,
 	CanvasSettings,
 	InputEvent,
 	Inputs,
 	KeysToTrack,
 	ParticleGenerator,
-	ReadyToRenderEvent,
 	Sprite,
 	SpriteText,
 	Time,
 	Transform,
+	Tween,
+	addTween,
 	checkTimer,
 	defaultPlugins,
 	loadImageFile,
@@ -50,14 +52,14 @@ function updateFPSCounter(ecs: ECS) {
 
 	const { updates, frames } = ecs.getLocalResource(FPSLog)!;
 	updates.push(1000 / time.delta);
-	frames.push(1000 / lastOpTime);
+	frames.push(lastOpTime);
 
 	if (checkTimer(ecs)) return;
 	const [text] = ecs.query([SpriteText], With(FPScounter)).single()!;
 
-	text.value = `UPS: ${Math.round(updates.reduce((a, b) => a + b) / updates.length)} / FPS: ${Math.round(
+	text.value = `UPS: ${Math.round(updates.reduce((a, b) => a + b) / updates.length)} / Frame time: ${Math.round(
 		frames.reduce((a, b) => a + b) / frames.length
-	)} / Entities: ${ecs.entityCount()} / REpU: ${ecs.getEventReader(ReadyToRenderEvent).get().length}`;
+	)} / Entities: ${ecs.entityCount()}`;
 
 	ecs.removeLocalResource(FPSLog);
 	setTimer(ecs, 1000);
@@ -76,14 +78,14 @@ function makeSquare(ecs: ECS) {
 	const square = ecs.spawn(
 		new Square(),
 		new Transform(new Vec2(100, 100)),
-		new Sprite('image', [assets['square']]),
+		new Sprite('none'),
 		new ParticleGenerator(
-			50,
-			(t, s) => {
+			100,
+			(t, s, e) => {
 				s.type = 'image';
 				s.material = [assets['square']];
 
-				t.size.set(10, 10);
+				t.size.set(100, 100);
 				t.vel.random().mul(100);
 				t.vel.clampMag(0, 100);
 
@@ -91,6 +93,8 @@ function makeSquare(ecs: ECS) {
 					s.material = 'white';
 					s.ZIndex = 1;
 				}
+
+				addTween(e, 'velocity', new Tween(t.vel, t.vel.clone().mul(10).toObject(), 1000));
 			},
 			1000,
 			80,
