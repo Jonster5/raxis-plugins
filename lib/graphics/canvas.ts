@@ -210,6 +210,7 @@ export async function render(ecs: ECS) {
 		{ type, material, filter, visible, alpha, borderColor, borderWidth, index: ci },
 	] = canvasQuery.single()!;
 	const { controller, rop, targetFrameTime } = canvas;
+	if (!canvas.readyToRender) return;
 
 	const root = rop.use();
 
