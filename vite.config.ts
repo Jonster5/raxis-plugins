@@ -14,6 +14,7 @@ export default defineConfig({
 		rollupOptions: {
 			external: ['raxis'],
 		},
+		sourcemap: true,
 	},
 	server: {
 		host: true,

@@ -1,13 +1,17 @@
 import { linear } from 'raxis';
 import { TweenBase } from './tweenbase';
 
-export class DynamicTween<T extends { [key: string]: number }, P extends [...string[]]> extends TweenBase {
+type OnlyNumberProps<T extends object> = {
+	[P in keyof T as T[P] extends number ? P : never]: number;
+};
+
+export class DynamicTween<T extends object, P extends [...(keyof OnlyNumberProps<T>)[]]> extends TweenBase {
 	obj: T;
 
-	start: { [key: string]: number };
+	start: { [key: PropertyKey]: number };
 	target: T;
 
-	fields: string[];
+	fields: (keyof T)[];
 
 	protected declare _state: number;
 
@@ -35,13 +39,17 @@ export class DynamicTween<T extends { [key: string]: number }, P extends [...str
 			throw new Error(`Prop list must contain at least one item`);
 		}
 
-		props.forEach((prop: string) => {
-			if (!(prop in obj)) throw new Error(`Key [${prop}] does not exist on ${obj.constructor.name}`);
+		props.forEach((prop: keyof T) => {
+			if (!isValidProp(prop)) throw new Error(`Key [${prop}] does not exist on ${obj.constructor.name}`);
 			if (typeof obj[prop] !== 'number') throw new Error(`All input object properties must be of type number`);
 
 			this.start[prop] = obj[prop];
 			this.fields.push(prop);
 		});
+
+		function isValidProp(prop: PropertyKey): prop is keyof T {
+			return prop in obj;
+		}
 	}
 
 	update(dt: number) {
